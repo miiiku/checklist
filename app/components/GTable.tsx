@@ -1,8 +1,23 @@
 import dayjs from "dayjs"
 import { useEffect, useState } from "react"
 
+enum BLOCK_TYPE {
+  MONTH   = 'month',
+  DAY     = 'day',
+  DATE    = 'date',
+  ONLY    = 'only',
+  INVALID = 'invalid',
+}
+
 interface DateMap {
   [key: string]: Array<string>
+}
+
+interface RenderProps {
+  key: string | number,
+  type: BLOCK_TYPE,
+  isLive?: boolean,
+  render?: (props: any) => JSX.Element | Array<JSX.Element> | string | number,
 }
 
 function add0(m: number) {
@@ -22,7 +37,7 @@ export default function GTable() {
   const checkData:DateMap = {
     '2022-05-24': ['task-a'],
     '2022-06-02': ['task-a', 'task-b'],
-    '2022-06-05': ['task-a', 'task-b', 'task-c', 'task-d', 'task-e'],
+    '2022-06-05': ['task-a', 'task-b'],
     '2022-06-06': ['task-a', 'task-b', 'task-c'],
     '2022-06-08': ['task-a', 'task-b', 'task-c', 'task-d'],
     '2022-06-10': ['task-a', 'task-b'],
@@ -54,32 +69,6 @@ export default function GTable() {
   }
 
   /**
-   * 渲染顶部天方块
-   * @param key 
-   * @returns 
-   */
-  function renderDayBlock (key: number) {
-    return (
-      <div className="date-item--wrap" key={key}>
-        <div className="date-item--inner inner-day">{ key }</div>
-      </div>
-    )
-  }
-
-  /**
-   * 渲染左侧月方块
-   * @param key 
-   * @returns 
-   */
-  function renderMonthBlock (key: string) {
-    return (
-      <div className="date-item--wrap" key={ key }>
-        <div className="date-item--inner inner-month">{ key }</div>
-      </div>
-    )
-  }
-
-  /**
    * 渲染日期方块
    * @param key 
    * @returns 
@@ -87,7 +76,7 @@ export default function GTable() {
   function renderDateBlock (key: string) {
     // 无效日期
     if (!Reflect.has(tableData, key)) {
-      return renderCustomBlock(key, '🍭')
+      return renderBlock({ key, type: BLOCK_TYPE.INVALID, render: () => '👻' })
     }
 
     const dateInfo = checkData[key] || []
@@ -95,27 +84,29 @@ export default function GTable() {
 
     // 已完成日期
     if (dateInfo && dateInfo.length) {
-      return (
-        <div className="date-item--wrap" key={ key }>
-          <div className={ `date-item--inner inner-date${isLive ? ' inner-live' : ''}` }>
-            { dateInfo.map(item => <span key={item}></span>) }
-          </div>
-        </div>
-      )
+      return renderBlock({
+        key,
+        type: BLOCK_TYPE.DATE,
+        isLive,
+        render: () => dateInfo.map(item => <span key={item}></span>)
+      })
     }
 
     // 无数据日期
-    return (
-      <div className="date-item--wrap" key={ key }>
-        <div className={ `date-item--inner inner-date${isLive ? ' inner-live' : ''}` }></div>
-      </div>
-    )
+    return renderBlock({ key, type: BLOCK_TYPE.ONLY, isLive })
   }
 
-  function renderCustomBlock (key: string, text: string) {
+  /**
+   * 渲染方块
+   * @param props 
+   * @returns 
+   */
+  function renderBlock (props: RenderProps) {
     return (
-      <div className="date-item--wrap" key={key}>
-        <div className="date-item--inner inner-custom">{ text }</div>
+      <div className="date-item--wrap" key={props.key}>
+        <div className={ `date-item--inner inner-${props.type}${ props.isLive ? ' live' : '' }` }>
+          { props.render && props.render(props) }     
+        </div>
       </div>
     )
   }
@@ -123,12 +114,12 @@ export default function GTable() {
 
   return (
     <div className="table-container mx-auto w-fit grid grid-cols-32 grid-rows-13 gap-2">
-      { renderCustomBlock('/', '🎇') }
-      { tableColumns.map(day => renderDayBlock(day)) }
+      { renderBlock({ key: '/', type: BLOCK_TYPE.ONLY, render: () => '🌟' }) }
+      { tableColumns.map(day => renderBlock({ key: day, type: BLOCK_TYPE.DAY, render: () => day })) }
       {
         tableRows.map((month, index) => {
           const row = []
-          row.push(renderMonthBlock(month))
+          row.push(renderBlock({ key: month, type: BLOCK_TYPE.MONTH, render: () => month }))
           tableColumns.forEach(day => {
             const key = `${year}-${add0(index + 1)}-${add0(day)}`
             row.push(renderDateBlock(key))

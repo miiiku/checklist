@@ -11,13 +11,22 @@
     @apply w-12 h-12 p-1;
   }
   .date-item--inner {
-    @apply flex flex-wrap justify-center items-center h-full bg-gray-50 text-center text-slate-400 font-semibold rounded-lg shadow-md;
+    @apply flex flex-wrap justify-center items-center h-full text-center font-semibold rounded-lg shadow-md;
   }
   .date-item--inner.inner-day {
     @apply bg-sky-400 text-slate-50;
   }
   .date-item--inner.inner-month {
     @apply bg-rose-400 text-slate-50;
+  }
+  .date-item--inner.inner-date {
+    @apply bg-gray-50 text-slate-400 transition hover:shadow-lg;
+  }
+  .date-item--inner.inner-date.live {
+    @apply rounded-full;
+  }
+  .date-item--inner.inner-invalid {
+    @apply rounded-none shadow-none;
   }
 }
 
@@ -33,12 +42,6 @@ html, body {
 .date-item--inner.inner-date {
   overflow: hidden;
   flex-direction: column;
-}
-
-.date-item--inner.inner-live {
-  transform: scale(1.2);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-  background-color: #9cf6f6;
 }
 
 .date-item--inner.inner-date span {
